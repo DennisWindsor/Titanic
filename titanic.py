@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import KFold
-
+from sklearn.preprocessing import normalize
+from sklearn.metrics import accuracy_score
+from sklearn import svm
 
 # import data and preprocess
 train_data = pd.read_csv('train.csv')
@@ -27,9 +29,25 @@ test_data.loc[mask, "Sex"] = 1
 mask = test_data["Sex"] == "female"
 test_data.loc[mask, "Sex"] = 0
 
+# Normalize
+train_data
+
 # Split into X and y
 X_cols = ["Pclass", "Sex", "Age", "SibSp", "Parch", "Fare"]
 y_col = "Survived"
 X_train = train_data[X_cols]
-X_test = test_data[X_cols]
-y_train = train_data[[y_col]]
+X_train = normalize(X_train)
+y_train = np.array(train_data[y_col])
+
+kf = KFold(n_splits=5)
+
+print("SVN")
+for train, test in kf.split(train_data):
+    X = X_train[train]
+    y = y_train[train]
+    X_valid = X_train[test]
+    y_valid = y_train[test]
+    model = svm.SVC()
+    model.fit(X, y)
+    predict= model.predict(X_valid)
+    print(accuracy_score(y_valid, predict))

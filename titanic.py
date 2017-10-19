@@ -17,7 +17,7 @@ from sklearn.preprocessing import StandardScaler
 def run_k_fold_on_model(model, X_train, y_train):
     kf = KFold(n_splits=5)
     acc = []
-    for train, test in kf.split(train_data):
+    for train, test in kf.split(X_train):
         X = X_train[train]
         y = y_train[train]
         X_valid = X_train[test]
@@ -27,7 +27,6 @@ def run_k_fold_on_model(model, X_train, y_train):
         print(accuracy_score(y_valid, predict))
         acc.append(accuracy_score(y_valid, predict))
     print("Average: {}".format(np.mean(acc)))
-    avg_acc.append(np.mean(acc))
 
 
 models = [(svm.SVC(probability=True), "SVM"), (MLPClassifier(solver='lbfgs', alpha=1e-5,
@@ -35,7 +34,7 @@ models = [(svm.SVC(probability=True), "SVM"), (MLPClassifier(solver='lbfgs', alp
           (SGDClassifier(loss="hinge", penalty="l2"), "SGD"),
           (KNeighborsClassifier(n_neighbors=5),"KNN"),
           (tree.DecisionTreeClassifier(), "Decision Tree"),
-           (RandomForestClassifier(max_depth=7, random_state=0), "Random Forest")]
+           (RandomForestClassifier(max_depth=7, n_estimators=100, n_jobs=-1), "Random Forest")]
 
 # import data and preprocess
 train_data = pd.read_csv('train.csv')
@@ -71,9 +70,8 @@ test_data.loc[mask, "Sex"] = 0
 # Split into X and y
 X_cols = ["Pclass", "Sex",  "SibSp", "Parch", "Fare", "Age"]
 y_col = "Survived"
-X_train = train_data[X_cols]
+X_train = np.array(train_data[X_cols])
 y_train = np.array(train_data[y_col])
-X_train = SelectKBest(chi2, k=4).fit_transform(X_train, y_train)
 #X_train = normalize(X_train)
 
 scaler = StandardScaler()
@@ -84,6 +82,7 @@ X_train = scaler.transform(X_train)
 for model in models:
     print(model[1])
     run_k_fold_on_model(model[0], X_train, y_train)
+
 
 
 # Test different neural network models
@@ -118,6 +117,19 @@ for model in models:
 #    print("max_depth: {} Average: {}".format(i,np.mean(acc)))
 
 # Test diff Random Forests
-for i in range(1, len(X_train[0])+1):
-    model = RandomForestClassifier(max_depth=7, random_state=0, max_features = i)
-    run_k_fold_on_model(model, X_train, y_train)
+#for i in range(1, len(X_train[0])+1):
+#    print("max_features={}".format(i))
+#    model = RandomForestClassifier(max_depth=7, random_state=0, max_features = i)
+#    run_k_fold_on_model(model, X_train, y_train)
+    
+#for i in range(10, 200, 10):
+#    print("n_estimators={}".format(i))
+#    model = RandomForestClassifier(max_depth=7, random_state=0, n_estimators=i)
+#    run_k_fold_on_model(model, X_train, y_train)
+
+#kernels = ['linear', 'poly', 'rbf', 'sigmoid']
+#for kernel in kernels:
+#    print(kernel)
+#    model=svm.SVC(probability=True,kernel=kernel)
+#    run_k_fold_on_model(model, X_train, y_train)
+    
